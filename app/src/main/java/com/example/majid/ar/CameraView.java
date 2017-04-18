@@ -12,12 +12,12 @@ import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
 
-public class Tutorial3View extends JavaCameraView implements PictureCallback {
+public class CameraView extends JavaCameraView implements PictureCallback {
 
     private static final String TAG = "Sample::Tutorial3View";
     private String mPictureFileName;
 
-    public Tutorial3View(Context context, AttributeSet attrs) {
+    public CameraView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 

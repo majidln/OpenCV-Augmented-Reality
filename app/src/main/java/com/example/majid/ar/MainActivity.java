@@ -13,7 +13,6 @@ import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,7 +31,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2, OnTouchListener {
     private static final String TAG = "OCVSample::Activity";
 
-    private Tutorial3View mOpenCvCameraView;
+    private CameraView mOpenCvCameraView;
     private List<Size> mResolutionList;
     private MenuItem[] mEffectMenuItems;
     private SubMenu mColorEffectsMenu;
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
         setContentView(R.layout.tutorial3_surface_view);
 
-        mOpenCvCameraView = (Tutorial3View) findViewById(R.id.tutorial3_activity_java_surface_view);
+        mOpenCvCameraView = (CameraView) findViewById(R.id.tutorial3_activity_java_surface_view);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
@@ -117,6 +116,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         List<String> effects = mOpenCvCameraView.getEffectList();
+
+        //solarize
 
         if (effects == null) {
             Log.e(TAG, "Color effects are not supported by device!");
