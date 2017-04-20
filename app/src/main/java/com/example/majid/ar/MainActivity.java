@@ -1,17 +1,25 @@
 package com.example.majid.ar;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.opencv.android.Utils;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-
+import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfKeyPoint;
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.DescriptorMatcher;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 import android.annotation.SuppressLint;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
@@ -26,6 +34,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2, OnTouchListener {
@@ -56,6 +65,13 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         }
     };
 
+//    private Mat mRgba;
+//    private Mat mGray;
+//    private Mat mView;
+//    private Mat mObject;
+
+    TextView log;
+
     public MainActivity() {
         Log.i(TAG, "Instantiated new " + this.getClass());
     }
@@ -69,11 +85,17 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
         setContentView(R.layout.tutorial3_surface_view);
 
+        log = (TextView) findViewById(R.id.log);
+
         mOpenCvCameraView = (CameraView) findViewById(R.id.tutorial3_activity_java_surface_view);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
         mOpenCvCameraView.setCvCameraViewListener(this);
+    }
+
+    public void setMessage(String s){
+        log.setText("\n" + s + "" + log.getText().toString());
     }
 
     @Override
@@ -104,13 +126,26 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     }
 
     public void onCameraViewStarted(int width, int height) {
+
+//        mRgba = new Mat();
+//        mGray = new Mat();
+//        mView = new Mat();
+//        mObject = new Mat();
+
     }
 
     public void onCameraViewStopped() {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        return inputFrame.rgba();
+
+        Mat mRgba = inputFrame.rgba();
+
+        return mRgba;
+
+        //return inputFrame.rgba();
+
+
     }
 
     @Override
