@@ -1,25 +1,5 @@
 package com.example.majid.ar;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
-
-import org.opencv.android.Utils;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
-import org.opencv.android.LoaderCallbackInterface;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
-import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.core.MatOfDMatch;
-import org.opencv.core.MatOfKeyPoint;
-import org.opencv.features2d.DescriptorExtractor;
-import org.opencv.features2d.DescriptorMatcher;
-import org.opencv.features2d.FeatureDetector;
-import org.opencv.features2d.Features2d;
 import android.annotation.SuppressLint;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
@@ -37,6 +17,31 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.ListIterator;
+
+import filters.Filter;
+import filters.NoneFilter;
+import filters.ar.ImageDetectionFilter;
+import filters.convolution.StrokeEdgesFilter;
+import filters.curve.CrossProcessCurveFilter;
+import filters.curve.PortraCurveFilter;
+import filters.curve.ProviaCurveFilter;
+import filters.curve.VelviaCurveFilter;
+import filters.mixer.RecolorCMVFilter;
+import filters.mixer.RecolorRCFilter;
+import filters.mixer.RecolorRGVFilter;
+
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2, OnTouchListener {
     private static final String TAG = "OCVSample::Activity";
 
@@ -46,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     private SubMenu mColorEffectsMenu;
     private MenuItem[] mResolutionMenuItems;
     private SubMenu mResolutionMenu;
+    private MenuItem nextTrackerMenu;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -56,6 +62,57 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                     Log.i(TAG, "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
+
+                    final Filter starryNight;
+                    try {
+                        starryNight = new ImageDetectionFilter(
+                                MainActivity.this,
+                                R.drawable.starry_night);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Failed to load drawable: " +
+                                "starry_night");
+                        e.printStackTrace();
+                        break;
+                    }
+
+                    final Filter akbarHunting;
+                    try {
+                        akbarHunting = new ImageDetectionFilter(
+                                MainActivity.this,
+                                R.drawable.akbar_hunting_with_cheetahs);
+                    } catch (IOException e) {
+                        Log.e(TAG, "Failed to load drawable: " +
+                                "akbar_hunting_with_cheetahs");
+                        e.printStackTrace();
+                        break;
+                    }
+
+                    mImageDetectionFilters = new Filter[] {
+                            new NoneFilter(),
+                            starryNight,
+                            akbarHunting
+                    };
+
+                    mCurveFilters = new Filter[] {
+                            new NoneFilter(),
+                            new PortraCurveFilter(),
+                            new ProviaCurveFilter(),
+                            new VelviaCurveFilter(),
+                            new CrossProcessCurveFilter()
+                    };
+                    mMixerFilters = new Filter[] {
+                            new NoneFilter(),
+                            new RecolorRCFilter(),
+                            new RecolorRGVFilter(),
+                            new RecolorCMVFilter()
+                    };
+                    mConvolutionFilters = new Filter[] {
+                            new NoneFilter(),
+                            new StrokeEdgesFilter(),
+                    };
+
+
+
                 } break;
                 default:
                 {
@@ -64,6 +121,24 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             }
         }
     };
+
+    // Keys for storing the indices of the active filters.
+    private static final String STATE_IMAGE_DETECTION_FILTER_INDEX = "imageDetectionFilterIndex";
+    private static final String STATE_CURVE_FILTER_INDEX = "curveFilterIndex";
+    private static final String STATE_MIXER_FILTER_INDEX = "mixerFilterIndex";
+    private static final String STATE_CONVOLUTION_FILTER_INDEX = "convolutionFilterIndex";
+
+    // The filters.
+    private Filter[] mImageDetectionFilters;
+    private Filter[] mCurveFilters;
+    private Filter[] mMixerFilters;
+    private Filter[] mConvolutionFilters;
+
+    // The indices of the active filters.
+    private int mImageDetectionFilterIndex;
+    private int mCurveFilterIndex;
+    private int mMixerFilterIndex;
+    private int mConvolutionFilterIndex;
 
 //    private Mat mRgba;
 //    private Mat mGray;
@@ -82,6 +157,23 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        if(savedInstanceState != null){
+            mImageDetectionFilterIndex = savedInstanceState.getInt(
+                    STATE_IMAGE_DETECTION_FILTER_INDEX, 0);
+            mCurveFilterIndex = savedInstanceState.getInt(
+                    STATE_CURVE_FILTER_INDEX, 0);
+            mMixerFilterIndex = savedInstanceState.getInt(
+                    STATE_MIXER_FILTER_INDEX, 0);
+            mConvolutionFilterIndex = savedInstanceState.getInt(
+                    STATE_CONVOLUTION_FILTER_INDEX, 0);
+        }else{
+            mImageDetectionFilterIndex = 0;
+            mCurveFilterIndex = 0;
+            mMixerFilterIndex = 0;
+            mConvolutionFilterIndex = 0;
+        }
+
 
         setContentView(R.layout.tutorial3_surface_view);
 
@@ -125,6 +217,22 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             mOpenCvCameraView.disableView();
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+
+        // Save the current filter indices.
+        savedInstanceState.putInt(STATE_IMAGE_DETECTION_FILTER_INDEX,
+                mImageDetectionFilterIndex);
+        savedInstanceState.putInt(STATE_CURVE_FILTER_INDEX,
+                mCurveFilterIndex);
+        savedInstanceState.putInt(STATE_MIXER_FILTER_INDEX,
+                mMixerFilterIndex);
+        savedInstanceState.putInt(STATE_CONVOLUTION_FILTER_INDEX,
+                mConvolutionFilterIndex);
+
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
     public void onCameraViewStarted(int width, int height) {
 
 //        mRgba = new Mat();
@@ -139,9 +247,15 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
-        Mat mRgba = inputFrame.rgba();
+        final Mat rgba = inputFrame.rgba();
 
-        return mRgba;
+        // Apply the active filters.
+        if (mImageDetectionFilters != null) {
+            mImageDetectionFilters[mImageDetectionFilterIndex].apply(
+                    rgba, rgba);
+        }
+
+        return rgba;
 
         //return inputFrame.rgba();
 
@@ -150,6 +264,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
+        nextTrackerMenu = menu.add(0, 10001 , Menu.NONE  ,"Next Tracker");
+
         List<String> effects = mOpenCvCameraView.getEffectList();
 
         //solarize
@@ -158,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             Log.e(TAG, "Color effects are not supported by device!");
             return true;
         }
+
 
         mColorEffectsMenu = menu.addSubMenu("Color Effect");
         mEffectMenuItems = new MenuItem[effects.size()];
@@ -188,6 +306,16 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     public boolean onOptionsItemSelected(MenuItem item) {
         Log.i(TAG, "called onOptionsItemSelected; selected item: " + item);
+
+        if(item.getItemId() == 10001){
+            mImageDetectionFilterIndex++;
+            if (mImageDetectionFilterIndex ==
+                    mImageDetectionFilters.length) {
+                mImageDetectionFilterIndex = 0;
+            }
+            return true;
+        }
+
         if (item.getGroupId() == 1)
         {
             mOpenCvCameraView.setEffect((String) item.getTitle());

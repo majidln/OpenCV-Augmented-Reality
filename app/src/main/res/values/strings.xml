@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">Ar</string>
+
+    <string name="app_name">Majid AR</string>
+
+    <string name="menu_next_image_detection_filter">Next Tracker</string>
+
 </resources>
