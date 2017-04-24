@@ -1,16 +1,16 @@
 package com.example.majid.ar;
 
-import java.io.FileOutputStream;
-import java.util.List;
-
-import org.opencv.android.JavaCameraView;
-
 import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
 import android.util.AttributeSet;
 import android.util.Log;
+
+import org.opencv.android.JavaCameraView;
+
+import java.io.FileOutputStream;
+import java.util.List;
 
 public class CameraView extends JavaCameraView implements PictureCallback {
 
@@ -29,6 +29,10 @@ public class CameraView extends JavaCameraView implements PictureCallback {
         return (mCamera.getParameters().getColorEffect() != null);
     }
 
+    public Camera.Parameters getParameters(){
+        return mCamera.getParameters();
+    }
+
     public String getEffect() {
         return mCamera.getParameters().getColorEffect();
     }
@@ -40,6 +44,10 @@ public class CameraView extends JavaCameraView implements PictureCallback {
     }
 
     public List<Size> getResolutionList() {
+        return mCamera.getParameters().getSupportedPreviewSizes();
+    }
+    //mSupportedImageSizes
+    public List<Size> getSupportedImageSizes(){
         return mCamera.getParameters().getSupportedPreviewSizes();
     }
 

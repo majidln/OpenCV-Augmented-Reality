@@ -1,5 +1,6 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_holder"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -10,10 +11,10 @@
         android:visibility="gone"
         android:id="@+id/tutorial3_activity_java_surface_view" />
 
-    <TextView
-        android:id="@+id/log"
-        android:layout_width="500dp"
-        android:layout_height="100dp"
-        android:text="hhghghg"/>
+    <!--<TextView-->
+        <!--android:id="@+id/log"-->
+        <!--android:layout_width="500dp"-->
+        <!--android:layout_height="100dp"-->
+        <!--android:text="hhghghg"/>-->
 
-</LinearLayout>
+</FrameLayout>

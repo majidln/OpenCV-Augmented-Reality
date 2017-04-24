@@ -7,4 +7,12 @@
         android:showAsAction="ifRoom|withText"
         android:title="@string/menu_next_image_detection_filter" />
 
+    <item
+        android:id="@+id/menu_next_camera"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/menu_next_image_detection_filter" />
+
+
+
 </menu>

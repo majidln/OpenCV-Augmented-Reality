@@ -1,7 +1,9 @@
 package com.example.majid.ar;
 
 import android.annotation.SuppressLint;
+import android.graphics.PixelFormat;
 import android.hardware.Camera.Size;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -14,8 +16,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
-import android.widget.TextView;
+import android.widget.FrameLayout;
 import android.widget.Toast;
+
+import com.example.majid.ar.adapters.CameraProjectionAdapter;
+import com.example.majid.ar.renders.ARCubeRenderer;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -30,9 +35,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
-import filters.Filter;
-import filters.NoneFilter;
+import filters.ar.ARFilter;
 import filters.ar.ImageDetectionFilter;
+import filters.ar.NoneARFilter;
 
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2, OnTouchListener {
     private static final String TAG = "OCVSample::Activity";
@@ -45,6 +50,9 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     private SubMenu mResolutionMenu;
     private MenuItem nextTrackerMenu;
 
+    // The image sizes supported by the active camera.
+    private List<Size> mSupportedImageSizes;
+
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -55,11 +63,13 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                     mOpenCvCameraView.enableView();
                     mOpenCvCameraView.setOnTouchListener(MainActivity.this);
 
-                    final Filter starryNight;
+                    final ARFilter starryNight;
                     try {
+                        // Define The Starry Night to be 1.0 units tall.
                         starryNight = new ImageDetectionFilter(
                                 MainActivity.this,
-                                R.drawable.starry_night);
+                                R.drawable.starry_night,
+                                mCameraProjectionAdapter, 1.0);
                     } catch (IOException e) {
                         Log.e(TAG, "Failed to load drawable: " +
                                 "starry_night");
@@ -67,11 +77,14 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                         break;
                     }
 
-                    final Filter akbarHunting;
+                    final ARFilter akbarHunting;
                     try {
+                        // Define Akbar Hunting with Cheetahs to be 1.0
+                        // units wide.
                         akbarHunting = new ImageDetectionFilter(
                                 MainActivity.this,
-                                R.drawable.akbar_hunting_with_cheetahs);
+                                R.drawable.akbar_hunting_with_cheetahs,
+                                mCameraProjectionAdapter, 1.0);
                     } catch (IOException e) {
                         Log.e(TAG, "Failed to load drawable: " +
                                 "akbar_hunting_with_cheetahs");
@@ -79,31 +92,11 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                         break;
                     }
 
-                    mImageDetectionFilters = new Filter[] {
-                            new NoneFilter(),
+                    mImageDetectionFilters = new ARFilter[] {
+                            new NoneARFilter(),
                             starryNight,
                             akbarHunting
                     };
-
-//                    mCurveFilters = new Filter[] {
-//                            new NoneFilter(),
-//                            new PortraCurveFilter(),
-//                            new ProviaCurveFilter(),
-//                            new VelviaCurveFilter(),
-//                            new CrossProcessCurveFilter()
-//                    };
-//
-//                    mMixerFilters = new Filter[] {
-//                            new NoneFilter(),
-//                            new RecolorRCFilter(),
-//                            new RecolorRGVFilter(),
-//                            new RecolorCMVFilter()
-//                    };
-//
-//                    mConvolutionFilters = new Filter[] {
-//                            new NoneFilter(),
-//                            new StrokeEdgesFilter(),
-//                    };
 
                 } break;
                 default:
@@ -121,23 +114,18 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
     private static final String STATE_CONVOLUTION_FILTER_INDEX = "convolutionFilterIndex";
 
     // The filters.
-    private Filter[] mImageDetectionFilters;
-//    private Filter[] mCurveFilters;
-//    private Filter[] mMixerFilters;
-//    private Filter[] mConvolutionFilters;
+    private ARFilter[] mImageDetectionFilters;
+
+    // An adapter between the video camera and projection matrix.
+    private CameraProjectionAdapter mCameraProjectionAdapter;
+
+    // The renderer for 3D augmentations.
+    private ARCubeRenderer mARRenderer;
 
     // The indices of the active filters.
     private int mImageDetectionFilterIndex;
-//    private int mCurveFilterIndex;
-//    private int mMixerFilterIndex;
-//    private int mConvolutionFilterIndex;
 
-//    private Mat mRgba;
-//    private Mat mGray;
-//    private Mat mView;
-//    private Mat mObject;
-
-    TextView log;
+//    TextView log;
 
     public MainActivity() {
         Log.i(TAG, "Instantiated new " + this.getClass());
@@ -160,17 +148,38 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
         setContentView(R.layout.tutorial3_surface_view);
 
-        log = (TextView) findViewById(R.id.log);
+        final FrameLayout layout = (FrameLayout) findViewById(R.id.main_holder);
 
+        GLSurfaceView glSurfaceView = new GLSurfaceView(this);
+        glSurfaceView.getHolder().setFormat(
+                PixelFormat.TRANSPARENT);
+        glSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0);
+        glSurfaceView.setZOrderOnTop(true);
+        glSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+        layout.addView(glSurfaceView);
+
+        mCameraProjectionAdapter = new CameraProjectionAdapter();
+
+        mARRenderer = new ARCubeRenderer();
+        mARRenderer.cameraProjectionAdapter =
+                mCameraProjectionAdapter;
+
+        mARRenderer.scale = 0.5f;
+        glSurfaceView.setRenderer(mARRenderer);
+
+        //log = (TextView) findViewById(R.id.log);
         mOpenCvCameraView = (CameraView) findViewById(R.id.tutorial3_activity_java_surface_view);
 
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
         mOpenCvCameraView.setCvCameraViewListener(this);
+
     }
 
     public void setMessage(String s){
-        log.setText("\n" + s + "" + log.getText().toString());
+        //log.setText("\n" + s + "" + log.getText().toString());
     }
 
     @Override
@@ -278,6 +287,11 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             idx++;
         }
 
+        //Log.d("test" , mResolutionList.get(0).width + " h: " + mResolutionList.get(0).height);
+        mCameraProjectionAdapter.setCameraParameters(
+                mOpenCvCameraView.getParameters(),
+                mResolutionList.get(0));
+
         return true;
     }
 
@@ -289,6 +303,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
             if (mImageDetectionFilterIndex == mImageDetectionFilters.length) {
                 mImageDetectionFilterIndex = 0;
             }
+            mARRenderer.filter = mImageDetectionFilters[
+                    mImageDetectionFilterIndex];
             return true;
         }
 
