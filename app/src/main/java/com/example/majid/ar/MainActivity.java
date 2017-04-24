@@ -33,14 +33,6 @@ import java.util.ListIterator;
 import filters.Filter;
 import filters.NoneFilter;
 import filters.ar.ImageDetectionFilter;
-import filters.convolution.StrokeEdgesFilter;
-import filters.curve.CrossProcessCurveFilter;
-import filters.curve.PortraCurveFilter;
-import filters.curve.ProviaCurveFilter;
-import filters.curve.VelviaCurveFilter;
-import filters.mixer.RecolorCMVFilter;
-import filters.mixer.RecolorRCFilter;
-import filters.mixer.RecolorRGVFilter;
 
 public class MainActivity extends AppCompatActivity implements CvCameraViewListener2, OnTouchListener {
     private static final String TAG = "OCVSample::Activity";
@@ -93,25 +85,25 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
                             akbarHunting
                     };
 
-                    mCurveFilters = new Filter[] {
-                            new NoneFilter(),
-                            new PortraCurveFilter(),
-                            new ProviaCurveFilter(),
-                            new VelviaCurveFilter(),
-                            new CrossProcessCurveFilter()
-                    };
-                    mMixerFilters = new Filter[] {
-                            new NoneFilter(),
-                            new RecolorRCFilter(),
-                            new RecolorRGVFilter(),
-                            new RecolorCMVFilter()
-                    };
-                    mConvolutionFilters = new Filter[] {
-                            new NoneFilter(),
-                            new StrokeEdgesFilter(),
-                    };
-
-
+//                    mCurveFilters = new Filter[] {
+//                            new NoneFilter(),
+//                            new PortraCurveFilter(),
+//                            new ProviaCurveFilter(),
+//                            new VelviaCurveFilter(),
+//                            new CrossProcessCurveFilter()
+//                    };
+//
+//                    mMixerFilters = new Filter[] {
+//                            new NoneFilter(),
+//                            new RecolorRCFilter(),
+//                            new RecolorRGVFilter(),
+//                            new RecolorCMVFilter()
+//                    };
+//
+//                    mConvolutionFilters = new Filter[] {
+//                            new NoneFilter(),
+//                            new StrokeEdgesFilter(),
+//                    };
 
                 } break;
                 default:
@@ -130,15 +122,15 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
     // The filters.
     private Filter[] mImageDetectionFilters;
-    private Filter[] mCurveFilters;
-    private Filter[] mMixerFilters;
-    private Filter[] mConvolutionFilters;
+//    private Filter[] mCurveFilters;
+//    private Filter[] mMixerFilters;
+//    private Filter[] mConvolutionFilters;
 
     // The indices of the active filters.
     private int mImageDetectionFilterIndex;
-    private int mCurveFilterIndex;
-    private int mMixerFilterIndex;
-    private int mConvolutionFilterIndex;
+//    private int mCurveFilterIndex;
+//    private int mMixerFilterIndex;
+//    private int mConvolutionFilterIndex;
 
 //    private Mat mRgba;
 //    private Mat mGray;
@@ -161,17 +153,8 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         if(savedInstanceState != null){
             mImageDetectionFilterIndex = savedInstanceState.getInt(
                     STATE_IMAGE_DETECTION_FILTER_INDEX, 0);
-            mCurveFilterIndex = savedInstanceState.getInt(
-                    STATE_CURVE_FILTER_INDEX, 0);
-            mMixerFilterIndex = savedInstanceState.getInt(
-                    STATE_MIXER_FILTER_INDEX, 0);
-            mConvolutionFilterIndex = savedInstanceState.getInt(
-                    STATE_CONVOLUTION_FILTER_INDEX, 0);
         }else{
             mImageDetectionFilterIndex = 0;
-            mCurveFilterIndex = 0;
-            mMixerFilterIndex = 0;
-            mConvolutionFilterIndex = 0;
         }
 
 
@@ -223,12 +206,6 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
         // Save the current filter indices.
         savedInstanceState.putInt(STATE_IMAGE_DETECTION_FILTER_INDEX,
                 mImageDetectionFilterIndex);
-        savedInstanceState.putInt(STATE_CURVE_FILTER_INDEX,
-                mCurveFilterIndex);
-        savedInstanceState.putInt(STATE_MIXER_FILTER_INDEX,
-                mMixerFilterIndex);
-        savedInstanceState.putInt(STATE_CONVOLUTION_FILTER_INDEX,
-                mConvolutionFilterIndex);
 
         super.onSaveInstanceState(savedInstanceState);
     }
@@ -309,8 +286,7 @@ public class MainActivity extends AppCompatActivity implements CvCameraViewListe
 
         if(item.getItemId() == 10001){
             mImageDetectionFilterIndex++;
-            if (mImageDetectionFilterIndex ==
-                    mImageDetectionFilters.length) {
+            if (mImageDetectionFilterIndex == mImageDetectionFilters.length) {
                 mImageDetectionFilterIndex = 0;
             }
             return true;

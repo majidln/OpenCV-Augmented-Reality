@@ -1,8 +1,6 @@
 package filters.ar;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import android.content.Context;
 
 import org.opencv.android.Utils;
 import org.opencv.calib3d.Calib3d;
@@ -20,9 +18,12 @@ import org.opencv.core.Scalar;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
-import android.content.Context;
+import org.opencv.imgproc.Imgproc;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import filters.Filter;
 
@@ -122,6 +123,7 @@ public final class ImageDetectionFilter implements Filter {
         // Detect the scene features, compute their descriptors,
         // and match the scene descriptors to reference descriptors.
         mFeatureDetector.detect(mGraySrc, mSceneKeypoints);
+
         mDescriptorExtractor.compute(mGraySrc, mSceneKeypoints,
                 mSceneDescriptors);
         mDescriptorMatcher.match(mSceneDescriptors,
